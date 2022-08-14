@@ -1,0 +1,74 @@
+"Phrases"
+{
+	"Translator credits"
+	{
+		"bg" "ugng <https://osyu.sh/>"
+		"chi" "Karasuneth <https://twitter.com/Karasuneth>"
+		"de" "Wirelex.exe <https://steamcommunity.com/id/wirelex>"
+		"es" "darako <https://twitter.com/darak0z>"
+		"fr" "Nutshinou <https://twitter.com/nutshinou>"
+		"it" "svp <http://www.mespr.it/>"
+		"pl" "ciasteczkowy potwór <https://s.team/p/fqtp-hgpj>"
+		"ru" "ugng's mom <https://osyu.sh/>"
+	}
+	"Leaving zone"
+	{
+		"bg" "Напускате зоната!"
+		"chi" "你是离开了这区！"
+		"de" "Sie verlassen die Zone!"
+		"en" "You are leaving the zone!"
+		"es" "¡Estás saliendo de la zona!"
+		"fr" "Vous abandonnez la zone !"
+		"it" "Stai uscendo dalla zona!"
+		"pl" "Opuszczasz strefę!"
+		"ru" "Вы покидаете зону!"
+	}
+	"No suicide"
+	{
+		"bg" "Не можете да се САМОУБИЕТЕ, докато сте близо до ПОДЕМНОТО У-ВО!"
+		"chi" "近球时不能自杀！"
+		"de" "Sie können nicht SELBSTMORD begehen, während in der Nähe des JACK!"
+		"en" "You cannot SUICIDE while near the JACK!"
+		"es" "¡No puedes SUICIDARTE mientras estés cerca del BALÓN!"
+		"fr" "Vous ne pouvez pas vous SUICIDER quand vous êtes près de la BALLE !"
+		"it" "Non puoi SUICIDARTI se sei vicino alla PALLA!"
+		"pl" "Nie możesz się POPEŁNIĆ SAMOBÓJSTWA, gdy jesteś przy PIŁCE!"
+		"ru" "Вы не можете УБИТЬ СЕБЯ, находясь рядом с МЯЧОМ!"
+	}
+	"No suicide carry"
+	{
+		"bg" "Не можете да се САМОУБИЕТЕ, докато носите ПОДЕМНОТО У-ВО!"
+		"chi" "持球时不能自杀！"
+		"de" "Sie können nicht SELBSTMORD begehen, während Sie den JACK tragen!"
+		"en" "You cannot SUICIDE while carrying the JACK!"
+		"es" "¡No puedes SUICIDARTE mientras lleves el BALÓN!"
+		"fr" "Vous ne pouvez pas vous SUICIDER quand vous avez la BALLE !"
+		"it" "Non puoi SUICIDARTI se hai la PALLA!"
+		"pl" "Nie możesz się POPEŁNIĆ SAMOBÓJSTWA, gdy niesiesz PIŁKĘ!"
+		"ru" "Вы не можете УБИТЬ СЕБЯ, когда у вас в руках МЯЧ!"
+	}
+	"No class"
+	{
+		"bg" "Не можете да СМЕНИТЕ КЛАСА, докато сте близо до ПОДЕМНОТО У-ВО!"
+		"chi" "近球时不能更改兵种！"
+		"de" "Sie können nicht die KLASSE WECHSELN, während in der Nähe des JACK!"
+		"en" "You cannot CHANGE CLASS while near the JACK!"
+		"es" "¡No puedes CAMBIAR DE CLASE mientras estés cerca del BALÓN!"
+		"fr" "Vous ne pouvez pas CHANGER DE CLASSE quand vous êtes près de la BALLE !"
+		"it" "Non puoi CAMBIARE CLASSE se sei vicino alla PALLA!"
+		"pl" "Nie możesz ZMIENIĆ KLASY, gdy jesteś przy PIŁCE!"
+		"ru" "Вы не можете СМЕНИТЬ КЛАСС, находясь рядом с МЯЧОМ!"
+	}
+	"No class carry"
+	{
+		"bg" "Не можете да СМЕНИТЕ КЛАСА, докато носите ПОДЕМНОТО У-ВО!"
+		"chi" "持球时不能更改兵种！"
+		"de" "Sie können nicht die KLASSE WECHSELN, während Sie den JACK tragen!"
+		"en" "You cannot CHANGE CLASS while carrying the JACK!"
+		"es" "¡No puedes CAMBIAR DE CLASE mientras lleves el BALÓN!"
+		"fr" "Vous ne pouvez pas CHANGER DE CLASSE quand vous avez la BALLE !"
+		"it" "Non puoi CAMBIARE CLASSE se hai la PALLA!"
+		"pl" "Nie możesz ZMIENIĆ KLASY, gdy niesiesz PIŁKĘ!"
+		"ru" "Вы не можете СМЕНИТЬ КЛАСС, когда у вас в руках МЯЧ!"
+	}
+}

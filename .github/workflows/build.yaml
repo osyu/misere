@@ -1,0 +1,67 @@
+name: Build workflow
+
+on:
+  push:
+    branches: master
+    paths-ignore: '**.md'
+  pull_request:
+    paths-ignore: '**.md'
+  release:
+    types: published
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@main
+
+      - name: Checkout sendproxy
+        uses: actions/checkout@main
+        with:
+          repository: arthurdead/sendproxy
+          path: sendproxy
+
+      - name: Set up spcomp
+        uses: rumblefrog/setup-sp@master
+        with:
+          version: 1.11.x
+
+      - name: Compile plugin
+        working-directory: addons/sourcemod/scripting/
+        env:
+          include: ${{ github.workspace }}/sendproxy/sourcemod/scripting/include/
+        run: |
+          mkdir ../plugins
+          spcomp64 -v2 -E -i$include misere.sp -o ../plugins/misere.smx
+
+      - name: Create archive
+        run: |
+          7za a -r misere.zip addons/ models/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@main
+        with:
+          name: package
+          path: misere.zip
+
+  upload-release:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'release'
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@main
+        with:
+          name: package
+
+      - name: Upload release asset
+        uses: actions/upload-release-asset@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: misere.zip
+          asset_name: misere.zip
+          asset_content_type: application/zip

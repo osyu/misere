@@ -1,0 +1,206 @@
+"Games"
+{
+	"tf"
+	{
+		"Offsets"
+		{
+			"CTFGameRules::SetWinningTeam"
+			{
+				"linux" "161"
+				"windows" "160"
+			}
+			"CFilterTFTeam::PassesFilterImpl"
+			{
+				"linux" "196"
+				"windows" "195"
+			}
+			"CTFPlayer::IsAllowedToPickUpFlag"
+			{
+				"linux" "481"
+				"windows" "480"
+			}
+		}
+		"Signatures"
+		{
+			"CTFPasstimeLogic::BCanPlayerPickUpBall"
+			{
+				"library" "server"
+				"linux" "@_ZNK16CTFPasstimeLogic20BCanPlayerPickUpBallEP9CTFPlayerP17HudNotification_t"
+				"windows" "\x55\x8B\xEC\x57\x8B\x7D\x2A\x85\xFF\x74\x2A\xC7\x07\x00\x00\x00\x00"
+			}
+			"CPasstimeGun::BValidPassTarget"
+			{
+				"library" "server"
+				"linux" "@_ZN12CPasstimeGun16BValidPassTargetEP9CTFPlayerS1_P17HudNotification_t"
+				"windows" "\x55\x8B\xEC\x53\x56\x8B\x75\x2A\x57\x85\xF6\x74\x2A"
+			}
+			"CTFGameRules::SendHudNotification"
+			{
+				"library" "server"
+				"linux" "@_ZN12CTFGameRules19SendHudNotificationER16IRecipientFilter17HudNotification_tb"
+				"windows" "\x55\x8B\xEC\x80\x7D\x2A\x00\x75\x2A\x80\xB9\x2A\x2A\x2A\x2A\x00"
+			}
+			"CTeamplayRoundBasedRules::State_Transition"
+			{
+				"library" "server"
+				"linux" "@_ZN24CTeamplayRoundBasedRules16State_TransitionE22gamerules_roundstate_t"
+				"windows" "\x55\x8B\xEC\x56\x8B\xF1\x8B\x8E\x2A\x2A\x2A\x2A\x8B\x86\x2A\x2A\x2A\x2A"
+			}
+			"CTFPlayer::CancelEurekaTeleport"
+			{
+				"library" "server"
+				"linux" "@_ZN9CTFPlayer20CancelEurekaTeleportEv"
+				"windows" "\xC6\x81\x2A\x2A\x2A\x2A\x00\xC7\x81\x2A\x2A\x2A\x2A\x00\x00\x80\xBF"
+			}
+			"CTFRobotDestructionLogic::m_sCTFRobotDestructionLogic"
+			{
+				"library" "server"
+				"linux" "@_ZN24CTFRobotDestructionLogic27m_sCTFRobotDestructionLogicE"
+			}
+			"cc_tf_rd_max_points_override"
+			{
+				"library" "server"
+				"windows" "\x55\x8B\xEC\x83\xEC\x0C\x8D\x4D\x2A\x56"
+			}
+		}
+		"Addresses"
+		{
+			"m_sCTFRobotDestructionLogic"
+			{
+				"linux"
+				{
+					"signature" "CTFRobotDestructionLogic::m_sCTFRobotDestructionLogic"
+				}
+				"windows"
+				{
+					"signature" "cc_tf_rd_max_points_override"
+					"read" "20"
+				}
+			}
+		}
+		"Functions"
+		{
+			"CTFGameRules::SetWinningTeam"
+			{
+				"offset" "CTFGameRules::SetWinningTeam"
+				"hooktype" "gamerules"
+				"return" "void"
+				"this" "ignore"
+				"arguments"
+				{
+					"team"
+					{
+						"type" "int"
+					}
+					"iWinReason"
+					{
+						"type" "int"
+					}
+					"bForceMapReset"
+					{
+						"type" "bool"
+					}
+					"bSwitchTeams"
+					{
+						"type" "bool"
+					}
+					"bDontAddScore"
+					{
+						"type" "bool"
+					}
+					"bFinal"
+					{
+						"type" "bool"
+					}
+				}
+			}
+			"CFilterTFTeam::PassesFilterImpl"
+			{
+				"offset" "CFilterTFTeam::PassesFilterImpl"
+				"hooktype" "entity"
+				"return" "bool"
+				"this" "ignore"
+				"arguments"
+				{
+					"pCaller"
+					{
+						"type" "cbaseentity"
+					}
+					"pEntity"
+					{
+						"type" "cbaseentity"
+					}
+				}
+			}
+			"CTFPlayer::IsAllowedToPickUpFlag"
+			{
+				"offset" "CTFPlayer::IsAllowedToPickUpFlag"
+				"hooktype" "entity"
+				"return" "bool"
+				"this" "entity"
+			}
+			"CTFPasstimeLogic::BCanPlayerPickUpBall"
+			{
+				"signature" "CTFPasstimeLogic::BCanPlayerPickUpBall"
+				"callconv" "thiscall"
+				"return" "bool"
+				"this" "ignore"
+				"arguments"
+				{
+					"pPlayer"
+					{
+						"type" "cbaseentity"
+					}
+					"pReason"
+					{
+						"type" "objectptr"
+					}
+				}
+			}
+			"CPasstimeGun::BValidPassTarget"
+			{
+				"signature" "CPasstimeGun::BValidPassTarget"
+				"callconv" "thiscall"
+				"return" "bool"
+				"this" "ignore"
+				"arguments"
+				{
+					"pSource"
+					{
+						"type" "cbaseentity"
+					}
+					"pTarget"
+					{
+						"type" "cbaseentity"
+					}
+					"pReason"
+					{
+						"type" "objectptr"
+					}
+				}
+			}
+			"CTFGameRules::SendHudNotification"
+			{
+				"signature" "CTFGameRules::SendHudNotification"
+				"callconv" "thiscall"
+				"return" "void"
+				"this" "ignore"
+				"arguments"
+				{
+					"filter"
+					{
+						"type" "objectptr"
+					}
+					"iType"
+					{
+						"type" "int"
+					}
+					"bForceShow"
+					{
+						"type" "bool"
+					}
+				}
+			}
+		}
+	}
+}
