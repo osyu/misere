@@ -387,13 +387,13 @@ void Event_TeamplayRoundStart(Handle hEvent, const char[] sName, bool bDontBroad
   AcceptEntityInput(iRoundTimer, "SetSetupTime");
 
   int iFilterTeam = -1;
-  while ((iFilterTeam = FindEntityByClassname(iFilterTeam, "filter_activator_tfteam")) != INVALID_ENT_REFERENCE)
+  while ((iFilterTeam = FindEntityByClassname(iFilterTeam, "filter_activator_tfteam")) != -1)
   {
     DHookEntity(g_hPassesFilterImpl, false, iFilterTeam, _, PassesFilterImpl_Pre);
   }
 
   int iBarrier = -1;
-  while ((iBarrier = FindEntityByClassname(iBarrier, "func_respawnroomvisualizer")) != INVALID_ENT_REFERENCE)
+  while ((iBarrier = FindEntityByClassname(iBarrier, "func_respawnroomvisualizer")) != -1)
   {
     if (GetEntProp(iBarrier, Prop_Data, "m_bSolid"))
     {
@@ -402,7 +402,7 @@ void Event_TeamplayRoundStart(Handle hEvent, const char[] sName, bool bDontBroad
   }
 
   int iNoBall = -1;
-  while ((iNoBall = FindEntityByClassname(iNoBall, "func_passtime_no_ball_zone")) != INVALID_ENT_REFERENCE)
+  while ((iNoBall = FindEntityByClassname(iNoBall, "func_passtime_no_ball_zone")) != -1)
   {
     if (!GetEntProp(iNoBall, Prop_Data, "m_bDisabled"))
     {
