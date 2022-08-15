@@ -184,6 +184,7 @@ public void OnMapStart()
     float vBallSpawn[3];
     GetEntPropVector(iBallSpawn, Prop_Send, "m_vecOrigin", vBallSpawn);
 
+    // Set the map center to where the ball would land after spawning
     TR_TraceRayFilter(vBallSpawn, {90.0, 0.0, 0.0}, MASK_SOLID_BRUSHONLY, RayType_Infinite, TraceFilter);
     TR_GetEndPosition(g_vCenter);
 
@@ -367,9 +368,9 @@ void Event_TeamplayRoundStart(Handle hEvent, const char[] sName, bool bDontBroad
   SDKHook(g_iPDLogic, SDKHook_Think, PDLogicThink_Pre);
 
   /* PD "escrow" is counted by the client hud code by iterating over all stolen
-   * CCaptureFlags in the world, adding up their point values and attributing
-   * them to the previous owner's team. We create two teamed dummy flags here
-   * (which have themselves set as the prev. owner) to show goals on the hud. */
+   * CCaptureFlags, adding up their point values and attributing them to the
+   * previous owner's team. We create two teamed dummy flags here (which have
+   * themselves set as the previous owner) to show goals on the hud. */
   for (int i = 0; i < 2; i++)
   {
     g_iCapFlags[i] = CreateEntityByName("item_teamflag");
