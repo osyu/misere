@@ -241,7 +241,7 @@ public void OnGameFrame()
   if (g_bInPassTime && g_iCarrier)
   {
     float vCarrier[3];
-    GetEntPropVector(g_iCarrier, Prop_Send, "m_vecOrigin", vCarrier);
+    GetClientAbsOrigin(g_iCarrier, vCarrier);
 
     int iDistance = RoundFloat(GetVectorDistance(vCarrier, g_vCenter));
 
