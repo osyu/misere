@@ -6,18 +6,18 @@
 		{
 			"CTFGameRules::SetWinningTeam"
 			{
-				"linux" "161"
-				"windows" "160"
+				"linux" "165"
+				"windows" "164"
 			}
 			"CFilterTFTeam::PassesFilterImpl"
 			{
-				"linux" "196"
-				"windows" "195"
+				"linux" "199"
+				"windows" "198"
 			}
 			"CTFPlayer::IsAllowedToPickUpFlag"
 			{
-				"linux" "481"
-				"windows" "480"
+				"linux" "485"
+				"windows" "484"
 			}
 		}
 		"Signatures"
