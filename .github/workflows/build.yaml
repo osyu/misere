@@ -19,7 +19,7 @@ jobs:
       - name: Checkout sendproxy
         uses: actions/checkout@main
         with:
-          repository: arthurdead/sendproxy
+          repository: PMArkive/sendproxy-1
           path: sendproxy
 
       - name: Set up spcomp
