@@ -19,7 +19,7 @@ jobs:
       - name: Checkout sendproxy
         uses: actions/checkout@main
         with:
-          repository: PMArkive/sendproxy-1
+          repository: SlidyBat/sendproxy
           path: sendproxy
 
       - name: Set up spcomp
@@ -30,7 +30,7 @@ jobs:
       - name: Compile plugin
         working-directory: addons/sourcemod/scripting/
         env:
-          include: ${{ github.workspace }}/sendproxy/sourcemod/scripting/include/
+          include: ${{ github.workspace }}/sendproxy/addons/sourcemod/scripting/include/
         run: |
           mkdir ../plugins
           spcomp64 -v2 -E -i$include misere.sp -o ../plugins/misere.smx

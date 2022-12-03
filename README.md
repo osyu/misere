@@ -13,7 +13,7 @@ Custom TF2 gamemode based on PASS Time, where the team who moves the JACK furthe
 
 ## Installation
 
-This plugin requires SourceMod 1.11+ and [SendProxy Manager](https://github.com/arthurdead/sendproxy).
+This plugin requires SourceMod 1.11+ and [SendProxy Manager](https://github.com/SlidyBat/sendproxy).
 
 1. Download `misere.zip` from the [latest release](https://github.com/osyu/misere/releases/latest).
 2. Extract it and copy all folders into `tf/` on your gameserver.

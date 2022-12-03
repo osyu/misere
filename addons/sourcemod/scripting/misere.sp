@@ -645,7 +645,7 @@ bool TraceFilter(int iEnt, int iContentsMask)
 }
 
 //------------------------------------------------------------------------------
-Action GameTypeProxy(const char[] sProp, int &iValue, int iElement, int iClient)
+Action GameTypeProxy(const char[] sProp, int &iValue, int iElement)
 {
   iValue = StrEqual(sProp, "m_nGameType") ? 0 : 1;
   return Plugin_Changed;
