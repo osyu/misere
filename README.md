@@ -9,7 +9,7 @@ Custom TF2 gamemode based on PASS Time, where the team who moves the JACK furthe
 - Standard PASS Time goals can still be scored, but they only serve to expedite the end of the round; the winner is still the team with the smallest zone. Normal overtime rules also still apply (overtime only occurs if both teams have equal goals).
 - Suiciding by using the `kill`/`explode` commands or changing class is blocked while near (or carrying) the JACK. Friendly fire is enabled to allow teammates to kill each other as means to avoid the JACK.
 - To keep players from hiding in spawn, teams can open each other's spawn doors and the JACK can be carried into spawn areas. Players are given 8 seconds of spawn protection, during which they cannot carry the JACK.
-- Using jumper weapons or taunting no longer prevents players from carrying the JACK. Other conditions still do, though (e.g. uber, hauling a building).
+- Jumper weapons can inflict knockback on enemies. They also no longer prevent players from carrying the JACK while equipped.
 
 ## Installation
 

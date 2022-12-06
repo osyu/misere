@@ -20,6 +20,9 @@
 #define SETUP_TIME 10
 #define MAX_SCORES 3
 
+#define ROCKETJ_INDEX 237
+#define STICKYJ_INDEX 265
+
 #define ZONE_MODEL "models/misere/zone1"
 
 //------------------------------------------------------------------------------
@@ -40,12 +43,19 @@ Handle g_hIsAllowedToPickUpFlag;
 // Detours
 Handle g_hCanPlayerPickUpBall;
 Handle g_hValidPassTarget;
+Handle g_hRadiusDamage;
+Handle g_hApplyOnDamageAliveModifyRules;
 Handle g_hSendHudNotification;
 // SDK calls
 Handle g_hStateTransition;
 Handle g_hCancelEurekaTeleport;
 // Addresses
 Address g_pCTFRobotDestructionLogic;
+// Offsets
+int g_iTakeDamageInfoWeapon;
+int g_iTakeDamageInfoDamage;
+int g_iWeaponBaseWeaponInfo;
+int g_iWeaponDataDamage;
 
 // ConVars
 Handle g_hFriendlyFire;
@@ -88,6 +98,8 @@ public void OnPluginStart()
   g_hIsAllowedToPickUpFlag = DHookCreateFromConf(hGameConf, "CTFPlayer::IsAllowedToPickUpFlag");
   g_hCanPlayerPickUpBall = DHookCreateFromConf(hGameConf, "CTFPasstimeLogic::BCanPlayerPickUpBall");
   g_hValidPassTarget = DHookCreateFromConf(hGameConf, "CPasstimeGun::BValidPassTarget");
+  g_hRadiusDamage = DHookCreateFromConf(hGameConf, "CTFGameRules::RadiusDamage");
+  g_hApplyOnDamageAliveModifyRules = DHookCreateFromConf(hGameConf, "CTFGameRules::ApplyOnDamageAliveModifyRules");
   g_hSendHudNotification = DHookCreateFromConf(hGameConf, "CTFGameRules::SendHudNotification");
 
   StartPrepSDKCall(SDKCall_GameRules);
@@ -100,6 +112,11 @@ public void OnPluginStart()
   g_hCancelEurekaTeleport = EndPrepSDKCall();
 
   g_pCTFRobotDestructionLogic = GameConfGetAddress(hGameConf, "m_sCTFRobotDestructionLogic");
+
+  g_iTakeDamageInfoWeapon = GameConfGetOffset(hGameConf, "CTakeDamageInfo::m_hWeapon");
+  g_iTakeDamageInfoDamage = GameConfGetOffset(hGameConf, "CTakeDamageInfo::m_flDamage");
+  g_iWeaponBaseWeaponInfo = GameConfGetOffset(hGameConf, "CTFWeaponBase::m_pWeaponInfo");
+  g_iWeaponDataDamage = GameConfGetOffset(hGameConf, "CTFWeaponInfo::m_WeaponData[0]::m_nDamage");
 
   CloseHandle(hGameConf);
 
@@ -142,6 +159,8 @@ public void OnMapStart()
     SendProxy_HookGameRules("m_bPlayingRobotDestructionMode", Prop_Int, GameTypeProxy);
 
     DHookGamerules(g_hSetWinningTeam, false, _, SetWinningTeam_Pre);
+    DHookEnableDetour(g_hRadiusDamage, false, RadiusDamage_Pre);
+    DHookEnableDetour(g_hApplyOnDamageAliveModifyRules, false, ApplyOnDamageAliveModifyRules_Pre);
     DHookEnableDetour(g_hSendHudNotification, false, SendHudNotification_Pre);
 
     for (int i = 1; i <= MaxClients; i++)
@@ -204,6 +223,8 @@ public void OnMapEnd()
 {
   if (g_bInPassTime)
   {
+    DHookDisableDetour(g_hRadiusDamage, false, RadiusDamage_Pre);
+    DHookDisableDetour(g_hApplyOnDamageAliveModifyRules, false, ApplyOnDamageAliveModifyRules_Pre);
     DHookDisableDetour(g_hSendHudNotification, false, SendHudNotification_Pre);
 
     UnhookEvent("teamplay_round_start", Event_TeamplayRoundStart);
@@ -544,6 +565,47 @@ MRESReturn ValidPassTarget_Pre(Handle hReturn, Handle hParams)
 }
 
 //------------------------------------------------------------------------------
+/* Set damage dealt by jumper weapon projectiles to base damage. This is done
+ * here particularly because RadiusDamage is the first function in the chain
+ * to have a check & exit for zero damage; later functions down the line like
+ * OnTakeDamage won't be called at all unless there is damage present here. */
+MRESReturn RadiusDamage_Pre(Handle hParams)
+{
+  Address pTakeDamageInfo = LoadFromAddress(DHookGetParamAddress(hParams, 1), NumberType_Int32);
+  int iWeapon = GetWeaponIndexIfJumper(pTakeDamageInfo);
+
+  if (iWeapon)
+  {
+    Address pWeapon = GetEntityAddress(iWeapon);
+    Address pWeaponInfo = LoadFromAddress(pWeapon + view_as<Address>(g_iWeaponBaseWeaponInfo), NumberType_Int32);
+    int iDamage = LoadFromAddress(pWeaponInfo + view_as<Address>(g_iWeaponDataDamage), NumberType_Int32);
+
+    StoreToAddress(pTakeDamageInfo + view_as<Address>(g_iTakeDamageInfoDamage), float(iDamage), NumberType_Int32);
+  }
+
+  return MRES_Ignored;
+}
+
+//------------------------------------------------------------------------------
+/* Set damage dealt by jumper weapon projectiles back to 0. Note that push force
+ * is still calculated using the damage value from CTakeDamageInfo that we set
+ * earlier, whereas the value returned by this function is used for subtracting
+ * health from the victim (the game uses this same flow for normal self damage
+ * from jumper weapons). */
+MRESReturn ApplyOnDamageAliveModifyRules_Pre(Handle hReturn, Handle hParams)
+{
+  Address pTakeDamageInfo = DHookGetParamAddress(hParams, 1);
+
+  if (GetWeaponIndexIfJumper(pTakeDamageInfo))
+  {
+    DHookSetReturn(hReturn, 0.0);
+    return MRES_Override;
+  }
+
+  return MRES_Ignored;
+}
+
+//------------------------------------------------------------------------------
 /* Prevent PASS Time how-to hud notifications from being sent, since they
  * explain how to play the original gamemode and we don't want confusion. */
 MRESReturn SendHudNotification_Pre(Handle hParams)
@@ -619,6 +681,27 @@ void RestartRound()
       SDKCall(g_hStateTransition, iPrevState);
     }
   }
+}
+
+//------------------------------------------------------------------------------
+/* Given a CTakeDamageInfo address, return the entity index of the weapon used
+ * if it is a jumper weapon; otherwise return 0. */
+int GetWeaponIndexIfJumper(Address pTakeDamageInfo)
+{
+  int hWeapon = LoadFromAddress(pTakeDamageInfo + view_as<Address>(g_iTakeDamageInfoWeapon), NumberType_Int32);
+
+  if (hWeapon != -1)
+  {
+    int iWeapon = EntRefToEntIndex(hWeapon | (1<<31));
+    int iItemIndex = GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex");
+
+    if (iItemIndex == ROCKETJ_INDEX || iItemIndex == STICKYJ_INDEX)
+    {
+      return iWeapon;
+    }
+  }
+
+  return 0;
 }
 
 //------------------------------------------------------------------------------

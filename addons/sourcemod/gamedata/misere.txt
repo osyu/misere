@@ -19,6 +19,26 @@
 				"linux" "485"
 				"windows" "484"
 			}
+			"CTakeDamageInfo::m_hWeapon"
+			{
+				"linux" "44"
+				"windows" "44"
+			}
+			"CTakeDamageInfo::m_flDamage"
+			{
+				"linux" "48"
+				"windows" "48"
+			}
+			"CTFWeaponBase::m_pWeaponInfo"
+			{
+				"linux" "1764"
+				"windows" "1752"
+			}
+			"CTFWeaponInfo::m_WeaponData[0]::m_nDamage"
+			{
+				"linux" "1784"
+				"windows" "1784"
+			}
 		}
 		"Signatures"
 		{
@@ -33,6 +53,18 @@
 				"library" "server"
 				"linux" "@_ZN12CPasstimeGun16BValidPassTargetEP9CTFPlayerS1_P17HudNotification_t"
 				"windows" "\x55\x8B\xEC\x53\x56\x8B\x75\x2A\x57\x85\xF6\x74\x2A"
+			}
+			"CTFGameRules::RadiusDamage"
+			{
+				"library" "server"
+				"linux" "@_ZN12CTFGameRules12RadiusDamageER19CTFRadiusDamageInfo"
+				"windows" "\x55\x8B\xEC\x81\xEC\x24\x08\x00\x00\x53"
+			}
+			"CTFGameRules::ApplyOnDamageAliveModifyRules"
+			{
+				"library" "server"
+				"linux" "@_ZN12CTFGameRules29ApplyOnDamageAliveModifyRulesERK15CTakeDamageInfoP11CBaseEntityRNS_20DamageModifyExtras_tE"
+				"windows" "\x55\x8B\xEC\x81\xEC\xD4\x00\x00\x00\x53\x8B\x5D\x2A"
 			}
 			"CTFGameRules::SendHudNotification"
 			{
@@ -174,6 +206,42 @@
 						"type" "cbaseentity"
 					}
 					"pReason"
+					{
+						"type" "objectptr"
+					}
+				}
+			}
+			"CTFGameRules::RadiusDamage"
+			{
+				"signature" "CTFGameRules::RadiusDamage"
+				"callconv" "thiscall"
+				"return" "void"
+				"this" "ignore"
+				"arguments"
+				{
+					"info"
+					{
+						"type" "objectptr"
+					}
+				}
+			}
+			"CTFGameRules::ApplyOnDamageAliveModifyRules"
+			{
+				"signature" "CTFGameRules::ApplyOnDamageAliveModifyRules"
+				"callconv" "thiscall"
+				"return" "float"
+				"this" "ignore"
+				"arguments"
+				{
+					"info"
+					{
+						"type" "objectptr"
+					}
+					"pVictim"
+					{
+						"type" "cbaseentity"
+					}
+					"pExtras"
 					{
 						"type" "objectptr"
 					}
