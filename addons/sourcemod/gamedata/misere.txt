@@ -84,6 +84,28 @@
 				"linux" "@_ZN9CTFPlayer20CancelEurekaTeleportEv"
 				"windows" "\xC6\x81\x2A\x2A\x2A\x2A\x00\xC7\x81\x2A\x2A\x2A\x2A\x00\x00\x80\xBF"
 			}
+			"CBaseServer::AddTag"
+			{
+				"library" "engine"
+				"linux" "@_ZN11CBaseServer6AddTagEPKc"
+				"windows" "\x55\x8B\xEC\x81\xEC\x94\x00\x00\x00\xF7\x05\x2A\x2A\x2A\x2A\x00\x10\x00\x00"
+			}
+			"CBaseServer::RemoveTag"
+			{
+				"library" "engine"
+				"linux" "@_ZN11CBaseServer9RemoveTagEPKc"
+				"windows" "\x55\x8B\xEC\xA1\x2A\x2A\x2A\x2A\x81\xEC\x94\x00\x00\x00"
+			}
+			"CBaseServer::RecalculateTags::bRecalculatingTags"
+			{
+				"library" "engine"
+				"linux" "@_ZZN11CBaseServer15RecalculateTagsEvE18bRecalculatingTags"
+			}
+			"CBaseServer::RecalculateTags"
+			{
+				"library" "engine"
+				"windows" "\x55\x8B\xEC\x83\xEC\x18\x53\x8B\xD9\x8B\x03"
+			}
 			"CTFRobotDestructionLogic::m_sCTFRobotDestructionLogic"
 			{
 				"library" "server"
@@ -97,6 +119,18 @@
 		}
 		"Addresses"
 		{
+			"bRecalculatingTags"
+			{
+				"linux"
+				{
+					"signature" "CBaseServer::RecalculateTags::bRecalculatingTags"
+				}
+				"windows"
+				{
+					"signature" "CBaseServer::RecalculateTags"
+					"read" "43"
+				}
+			}
 			"m_sCTFRobotDestructionLogic"
 			{
 				"linux"

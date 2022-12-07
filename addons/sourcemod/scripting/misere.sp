@@ -23,6 +23,7 @@
 #define ROCKETJ_INDEX 237
 #define STICKYJ_INDEX 265
 
+#define SERVER_TAG "misere"
 #define ZONE_MODEL "models/misere/zone1"
 
 //------------------------------------------------------------------------------
@@ -49,7 +50,10 @@ Handle g_hSendHudNotification;
 // SDK calls
 Handle g_hStateTransition;
 Handle g_hCancelEurekaTeleport;
+Handle g_hAddTag;
+Handle g_hRemoveTag;
 // Addresses
+Address g_pRecalculatingTags;
 Address g_pCTFRobotDestructionLogic;
 // Offsets
 int g_iTakeDamageInfoWeapon;
@@ -62,7 +66,6 @@ Handle g_hFriendlyFire;
 Handle g_hMaxScores;
 bool g_bPrevFriendlyFire;
 int g_iPrevMaxScores;
-bool g_bCVarReverted;
 
 // Hud/visual entities
 int g_iPDLogic;
@@ -111,6 +114,17 @@ public void OnPluginStart()
   PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "CTFPlayer::CancelEurekaTeleport");
   g_hCancelEurekaTeleport = EndPrepSDKCall();
 
+  StartPrepSDKCall(SDKCall_Server);
+  PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "CBaseServer::AddTag");
+  PrepSDKCall_AddParameter(SDKType_String, SDKPass_Pointer);
+  g_hAddTag = EndPrepSDKCall();
+
+  StartPrepSDKCall(SDKCall_Server);
+  PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "CBaseServer::RemoveTag");
+  PrepSDKCall_AddParameter(SDKType_String, SDKPass_Pointer);
+  g_hRemoveTag = EndPrepSDKCall();
+
+  g_pRecalculatingTags = GameConfGetAddress(hGameConf, "bRecalculatingTags");
   g_pCTFRobotDestructionLogic = GameConfGetAddress(hGameConf, "m_sCTFRobotDestructionLogic");
 
   g_iTakeDamageInfoWeapon = GameConfGetOffset(hGameConf, "CTakeDamageInfo::m_hWeapon");
@@ -129,6 +143,8 @@ public void OnPluginStart()
   HookEvent("pass_ball_stolen", Event_PassStolen);
   HookEvent("pass_free", Event_PassFree);
   HookEvent("pass_score", Event_PassScore);
+
+  HookConVarChange(FindConVar("sv_tags"), OnTagsChanged);
 }
 
 //------------------------------------------------------------------------------
@@ -215,6 +231,8 @@ public void OnMapStart()
     RestartRound();
   }
 
+  SDKCall(g_bInPassTime ? g_hAddTag : g_hRemoveTag, SERVER_TAG);
+
   g_bMapInInit = false;
 }
 
@@ -243,6 +261,8 @@ public void OnMapEnd()
     SetConVarInt(g_hMaxScores, g_iPrevMaxScores);
 
     g_bInPassTime = false;
+
+    SDKCall(g_hRemoveTag, SERVER_TAG);
   }
 }
 
@@ -307,14 +327,36 @@ public void TF2_OnConditionRemoved(int iClient, TFCond iCondition)
 // Prevent ConVars that we changed from getting messed with.
 void OnConVarChanged(Handle hConVar, const char[] sOld, const char[] sNew)
 {
-  if (!g_bCVarReverted)
+  static bool bCVarSet;
+
+  if (!bCVarSet)
   {
-    g_bCVarReverted = true;
+    bCVarSet = true;
     SetConVarString(hConVar, sOld);
+    bCVarSet = false;
+  }
+}
+
+//------------------------------------------------------------------------------
+/* Enforce the custom server tag's inclusion/exclusion, depending on whether or
+ * not we are in PASS Time. This is done the the first time bRecalculatingTags
+ * is true to avoid CBaseServer::RecalculateTags being called twice, which will
+ * break alphabetical tag sorting in most cases. */
+void OnTagsChanged(Handle hConVar, const char[] sOld, const char[] sNew)
+{
+  static bool bTagSet;
+
+  if (LoadFromAddress(g_pRecalculatingTags, NumberType_Int8))
+  {
+    if (!bTagSet)
+    {
+      bTagSet = true;
+      SDKCall(g_bInPassTime ? g_hAddTag : g_hRemoveTag, SERVER_TAG);
+    }
   }
   else
   {
-    g_bCVarReverted = false;
+    bTagSet = false;
   }
 }
 
