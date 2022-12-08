@@ -73,15 +73,15 @@ int g_iCapFlags[2];
 int g_iZoneProps[2];
 
 // Map state
-bool g_bMapInInit = false;
-bool g_bInPassTime = false;
+bool g_bMapInInit;
+bool g_bInPassTime;
 
 // Game state
-int g_iScores[2] = {0, 0};
-int g_iGoals[2] = {0, 0};
-float g_vCenter[3];
-int g_iBall = 0;
-int g_iCarrier = 0;
+int g_iScores[2];
+int g_iGoals[2];
+float g_vecCenter[3];
+int g_iBall;
+int g_iCarrier;
 int g_iCarrierTeam;
 
 //------------------------------------------------------------------------------
@@ -216,12 +216,12 @@ public void OnMapStart()
 
     int iBallSpawn = FindEntityByClassname(-1, "info_passtime_ball_spawn");
 
-    float vBallSpawn[3];
-    GetEntPropVector(iBallSpawn, Prop_Send, "m_vecOrigin", vBallSpawn);
+    float vecBallSpawn[3];
+    GetEntPropVector(iBallSpawn, Prop_Send, "m_vecOrigin", vecBallSpawn);
 
     // Set the map center to where the ball would land after spawning
-    TR_TraceRayFilter(vBallSpawn, {90.0, 0.0, 0.0}, MASK_SOLID_BRUSHONLY, RayType_Infinite, TraceFilter);
-    TR_GetEndPosition(g_vCenter);
+    TR_TraceRayFilter(vecBallSpawn, {90.0, 0.0, 0.0}, MASK_SOLID_BRUSHONLY, RayType_Infinite, TraceFilter);
+    TR_GetEndPosition(g_vecCenter);
 
     if (g_bMapInInit)
     {
@@ -281,16 +281,16 @@ public void OnGameFrame()
 {
   if (g_bInPassTime && g_iCarrier)
   {
-    float vCarrier[3];
-    GetClientAbsOrigin(g_iCarrier, vCarrier);
+    float vecCarrier[3];
+    GetClientAbsOrigin(g_iCarrier, vecCarrier);
 
-    int iDistance = RoundFloat(GetVectorDistance(vCarrier, g_vCenter));
+    int iDistance = RoundFloat(GetVectorDistance(vecCarrier, g_vecCenter));
 
     if (iDistance > g_iScores[g_iCarrierTeam])
     {
       g_iScores[g_iCarrierTeam] = iDistance;
 
-      ShowTFHudText(g_iCarrier, _, 0, "%t", "Leaving zone");
+      ShowTFHudText(g_iCarrier, "%t", "Leaving zone");
 
       SetEntPropFloat(g_iZoneProps[g_iCarrierTeam], Prop_Send, "m_flModelScale", iDistance * 2.0);
 
@@ -339,8 +339,8 @@ void OnConVarChanged(Handle hConVar, const char[] sOld, const char[] sNew)
 
 //------------------------------------------------------------------------------
 /* Enforce the custom server tag's inclusion/exclusion, depending on whether or
- * not we are in PASS Time. This is done the the first time bRecalculatingTags
- * is true to avoid CBaseServer::RecalculateTags being called twice, which will
+ * not we are in PASS Time. This is done the first time bRecalculatingTags is
+ * true to avoid CBaseServer::RecalculateTags being called twice, which would
  * break alphabetical tag sorting in most cases. */
 void OnTagsChanged(Handle hConVar, const char[] sOld, const char[] sNew)
 {
@@ -366,7 +366,7 @@ Action Command_Taunt(int iClient, const char[] iCommand, int iArgc)
 {
   if (iClient == g_iCarrier)
   {
-    ShowTFHudText(g_iCarrier, _, 0, "#TF_Passtime_No_Taunt");
+    ShowTFHudText(g_iCarrier, "#TF_Passtime_No_Taunt");
     return Plugin_Handled;
   }
 
@@ -382,7 +382,7 @@ Action Command_Suicide(int iClient, const char[] iCommand, int iArgc)
 
   if (iClient == g_iCarrier)
   {
-    ShowTFHudText(iClient, _, 0, "%t", bJoinClass ? "No class carry" : "No suicide carry");
+    ShowTFHudText(iClient, "%t", bJoinClass ? "No class carry" : "No suicide carry");
     return Plugin_Handled;
   }
   else if (IsPlayerAlive(iClient))
@@ -391,16 +391,16 @@ Action Command_Suicide(int iClient, const char[] iCommand, int iArgc)
 
     if (iTarget)
     {
-      float vClient[3];
-      float vTarget[3];
-      GetClientAbsOrigin(iClient, vClient);
-      GetEntPropVector(iTarget, Prop_Send, "m_vecOrigin", vTarget);
+      float vecClient[3];
+      float vecTarget[3];
+      GetClientAbsOrigin(iClient, vecClient);
+      GetEntPropVector(iTarget, Prop_Send, "m_vecOrigin", vecTarget);
 
-      int iDistance = RoundFloat(GetVectorDistance(vClient, vTarget));
+      int iDistance = RoundFloat(GetVectorDistance(vecClient, vecTarget));
 
       if (iDistance < 800)
       {
-        ShowTFHudText(iClient, _, 0, "%t", bJoinClass ? "No class" : "No suicide");
+        ShowTFHudText(iClient, "%t", bJoinClass ? "No class" : "No suicide");
         return Plugin_Handled;
       }
     }
@@ -661,20 +661,30 @@ MRESReturn SendHudNotification_Pre(Handle hParams)
 }
 
 //------------------------------------------------------------------------------
-// Heresy! Witchcraft! More words!
+/* Create a prop_dynamic for a zone. We have to do some weird stuff here...
+ *
+ * There is a bug which causes scaled props to be drawn at n^2 scale, while the
+ * render bounds stay at n scale. Although setting the scale to sqrt(n) *will*
+ * make it draw at the correct size, frustrum culling will be broken due to the
+ * render bounds being smaller than the drawn model.
+ *
+ * Fortunately this bug only appears to happen on the root, and child entities
+ * aren't affected. As a workaround, we create two props with the same model:
+ * - an invisible parent (which is returned here and later scaled) and
+ * - a visible child (what we actually see in-game). */
 int CreateZoneProp(int iSkin)
 {
   int iPropParent = CreateEntityByName("prop_dynamic");
   SetEntityModel(iPropParent, ZONE_MODEL ... ".mdl");
   SetEntPropFloat(iPropParent, Prop_Send, "m_flModelScale", 0.0);
-  AddEntityEffects(iPropParent, 8 | 32); // EF_NOINTERP | EF_NODRAW
-  TeleportEntity(iPropParent, g_vCenter, NULL_VECTOR, NULL_VECTOR);
+  AddEntityEffects(iPropParent, 32); // EF_NODRAW
+  TeleportEntity(iPropParent, g_vecCenter, NULL_VECTOR, NULL_VECTOR);
 
   int iPropChild = CreateEntityByName("prop_dynamic");
   SetEntityModel(iPropChild, ZONE_MODEL ... ".mdl");
   SetEntProp(iPropChild, Prop_Send, "m_nSkin", iSkin);
   AddEntityEffects(iPropChild, 1 | 16); // EF_BONEMERGE | EF_NOSHADOW
-  TeleportEntity(iPropChild, g_vCenter, NULL_VECTOR, NULL_VECTOR);
+  TeleportEntity(iPropChild, g_vecCenter, NULL_VECTOR, NULL_VECTOR);
 
   SetVariantString("!activator");
   AcceptEntityInput(iPropChild, "SetParent", iPropParent);
@@ -694,16 +704,16 @@ void SendRDPointsChange(int iTeam, bool bPositive)
 }
 
 //------------------------------------------------------------------------------
-void ShowTFHudText(int iClient, char[] sIcon = "ico_notify_flag_moving_alt", int iTeam, char[] sFmt, any ...)
+void ShowTFHudText(int iClient, const char[] sFmt, any ...)
 {
   char sMessage[128];
   SetGlobalTransTarget(iClient);
-  VFormat(sMessage, sizeof(sMessage), sFmt, 5);
+  VFormat(sMessage, sizeof(sMessage), sFmt, 3);
 
   Handle hMessage = StartMessageOne("HudNotifyCustom", iClient, USERMSG_RELIABLE);
   BfWriteString(hMessage, sMessage);
-  BfWriteString(hMessage, sIcon);
-  BfWriteByte(hMessage, iTeam);
+  BfWriteString(hMessage, "ico_notify_flag_moving_alt");
+  BfWriteByte(hMessage, 0);
   EndMessage();
 }
 
@@ -748,8 +758,8 @@ int GetWeaponIndexIfJumper(Address pTakeDamageInfo)
 
 //------------------------------------------------------------------------------
 /* Our own criteria for whether players should be allowed to pick up the ball.
- * For some reason the game doesn't already check for canteen uber, which is
- * used by the Phlogistinator taunt (and our spawn protection). */
+ * The game doesn't already check for canteen uber, which is used by both the
+ * Phlogistinator taunt and our spawn protection. */
 bool IsClientImmune(int iClient)
 {
   return (TF2_IsPlayerInCondition(iClient, TFCond_Ubercharged) ||
