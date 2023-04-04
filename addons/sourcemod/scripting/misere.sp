@@ -235,7 +235,11 @@ public void OnMapStart()
       // Call this so the PD hud & others are shown during the first pregame
       Event_TeamplayRoundStart(INVALID_HANDLE, "", false);
     }
-    RestartRound();
+    else
+    {
+      // The plugin was started late, restart the round
+      RestartRound();
+    }
   }
 
   SDKCall(g_bInPassTime ? g_hAddTag : g_hRemoveTag, SERVER_TAG);
@@ -306,8 +310,8 @@ public void OnGameFrame()
       }
     }
 
-    /* Shrink zones constantly. Speed increases exponentially with radius,
-     * and has a multiplier while the zone's team is carrying the ball. */
+    /* Shrink zones. Speed increases exponentially with radius, and has a
+     * multiplier while the zone's team is carrying the ball. */
     if (GameRules_GetRoundState() == RoundState_RoundRunning)
     {
       for (int i = 0; i < 2; i++)
@@ -482,28 +486,21 @@ void Event_TeamplayRoundStart(Handle hEvent, const char[] sName, bool bDontBroad
   SetVariantInt(SETUP_TIME);
   AcceptEntityInput(iRoundTimer, "SetSetupTime");
 
-  int iFilterTeam = -1;
-  while ((iFilterTeam = FindEntityByClassname(iFilterTeam, "filter_activator_tfteam")) != -1)
+  int iEnt = -1;
+
+  while ((iEnt = FindEntityByClassname(iEnt, "filter_activator_tfteam")) != -1)
   {
-    DHookEntity(g_hPassesFilterImpl, false, iFilterTeam, _, PassesFilterImpl_Pre);
+    DHookEntity(g_hPassesFilterImpl, false, iEnt, _, PassesFilterImpl_Pre);
   }
 
-  int iBarrier = -1;
-  while ((iBarrier = FindEntityByClassname(iBarrier, "func_respawnroomvisualizer")) != -1)
+  while ((iEnt = FindEntityByClassname(iEnt, "func_respawnroomvisualizer")) != -1)
   {
-    if (GetEntProp(iBarrier, Prop_Data, "m_bSolid"))
-    {
-      RemoveEntity(iBarrier);
-    }
+    RemoveEntity(iEnt);
   }
 
-  int iNoBall = -1;
-  while ((iNoBall = FindEntityByClassname(iNoBall, "func_passtime_no_ball_zone")) != -1)
+  while ((iEnt = FindEntityByClassname(iEnt, "func_passtime_no_ball_zone")) != -1)
   {
-    if (!GetEntProp(iNoBall, Prop_Data, "m_bDisabled"))
-    {
-      RemoveEntity(iNoBall);
-    }
+    RemoveEntity(iEnt);
   }
 }
 
@@ -772,20 +769,16 @@ void ShowTFHudText(int iClient, const char[] sFmt, any ...)
 }
 
 //------------------------------------------------------------------------------
-/* Restart the round (if the map is not initializing). Used to clean entities
- * when the plugin starts or ends. */
+/* Restart the round. Used to clean entities when the plugin starts or ends. */
 void RestartRound()
 {
-  if (!g_bMapInInit)
-  {
-    RoundState iPrevState = GameRules_GetRoundState();
-    SDKCall(g_hStateTransition, RoundState_Preround);
+  RoundState iPrevState = GameRules_GetRoundState();
+  SDKCall(g_hStateTransition, RoundState_Preround);
 
-    // If we were in pregame, go back to prevent redundant state transitions
-    if (iPrevState == RoundState_Pregame)
-    {
-      SDKCall(g_hStateTransition, iPrevState);
-    }
+  // If we were in pregame, go back to prevent redundant state transitions
+  if (iPrevState == RoundState_Pregame)
+  {
+    SDKCall(g_hStateTransition, iPrevState);
   }
 }
 
