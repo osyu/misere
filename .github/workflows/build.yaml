@@ -37,7 +37,7 @@ jobs:
 
       - name: Create archive
         run: |
-          7za a -r misere.zip addons/ models/
+          7za a misere.zip addons/ models/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
