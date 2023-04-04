@@ -20,6 +20,10 @@
 #define SETUP_TIME 10
 #define MAX_SCORES 3
 
+#define SHRINK_SPEED 2.0
+#define SHRINK_MULT 2.0
+#define SHRINK_EXP 3000.0
+
 #define ROCKETJ_INDEX 237
 #define STICKYJ_INDEX 265
 
@@ -75,9 +79,10 @@ int g_iZoneProps[2];
 // Map state
 bool g_bMapInInit;
 bool g_bInPassTime;
+float g_fTickInterval;
 
 // Game state
-int g_iScores[2];
+float g_fRadii[2];
 int g_iGoals[2];
 float g_vecCenter[3];
 int g_iBall;
@@ -170,6 +175,8 @@ public void OnMapStart()
 
   if (g_bInPassTime)
   {
+    g_fTickInterval = GetTickInterval();
+
     // Make clients think we're in PD rather than PASS Time so the PD hud is shown
     SendProxy_HookGameRules("m_nGameType", Prop_Int, GameTypeProxy);
     SendProxy_HookGameRules("m_bPlayingRobotDestructionMode", Prop_Int, GameTypeProxy);
@@ -276,26 +283,48 @@ public void OnClientPutInServer(int iClient)
 }
 
 //------------------------------------------------------------------------------
-// Handle zone scoring and model scale.
+// Handle zone scaling behavior.
 public void OnGameFrame()
 {
-  if (g_bInPassTime && g_iCarrier)
+  if (g_bInPassTime)
   {
-    float vecCarrier[3];
-    GetClientAbsOrigin(g_iCarrier, vecCarrier);
+    float fDistance;
 
-    int iDistance = RoundFloat(GetVectorDistance(vecCarrier, g_vecCenter));
-
-    if (iDistance > g_iScores[g_iCarrierTeam])
+    /* If the carrier's distance from the center is greater than their team's
+     * zone radius, grow the zone to that distance and notify the carrier. */
+    if (g_iCarrier)
     {
-      g_iScores[g_iCarrierTeam] = iDistance;
+      float vecCarrier[3];
+      GetClientAbsOrigin(g_iCarrier, vecCarrier);
 
-      ShowTFHudText(g_iCarrier, "%t", "Leaving zone");
+      fDistance = GetVectorDistance(vecCarrier, g_vecCenter);
 
-      SetEntPropFloat(g_iZoneProps[g_iCarrierTeam], Prop_Send, "m_flModelScale", iDistance * 2.0);
+      if (fDistance > g_fRadii[g_iCarrierTeam])
+      {
+        SetZoneRadius(g_iCarrierTeam, fDistance);
+        ShowTFHudText(g_iCarrier, "%t", "Leaving zone");
+      }
+    }
 
-      SetEntProp(g_iPDLogic, Prop_Send, g_iCarrierTeam ? "m_nBlueScore" : "m_nRedScore", iDistance);
-      SendRDPointsChange(g_iCarrierTeam + 2, false);
+    /* Shrink zones constantly. Speed increases exponentially with radius,
+     * and has a multiplier while the zone's team is carrying the ball. */
+    for (int i = 0; i < 2; i++)
+    {
+      bool bIsCarrierTeam = g_iCarrier && i == g_iCarrierTeam;
+
+      if (g_fRadii[i] != 0 && !(bIsCarrierTeam && g_fRadii[i] == fDistance))
+      {
+        float fSpeed = SHRINK_SPEED * Exponential(g_fRadii[i] / SHRINK_EXP);
+        if (bIsCarrierTeam)
+        {
+          fSpeed *= SHRINK_MULT;
+        }
+
+        float fRadius = g_fRadii[i] - fSpeed * g_fTickInterval;
+        float fMin = bIsCarrierTeam ? fDistance : 0.0;
+
+        SetZoneRadius(i, (fRadius > fMin) ? fRadius : fMin);
+      }
     }
   }
 }
@@ -414,7 +443,7 @@ void Event_TeamplayRoundStart(Handle hEvent, const char[] sName, bool bDontBroad
 {
   g_iBall = 0;
   g_iCarrier = 0;
-  g_iScores = {0, 0};
+  g_fRadii = {0.0, 0.0};
   g_iGoals = {0, 0};
 
   g_iZoneProps[0] = CreateZoneProp(0);
@@ -531,11 +560,11 @@ MRESReturn SetWinningTeam_Pre(Handle hParams)
 {
   TFTeam iWinningTeam = TFTeam_Unassigned;
 
-  if (g_iScores[0] < g_iScores[1])
+  if (RoundFloat(g_fRadii[0]) < RoundFloat(g_fRadii[1]))
   {
     iWinningTeam = TFTeam_Red;
   }
-  else if (g_iScores[0] > g_iScores[1])
+  else if (RoundFloat(g_fRadii[0]) > RoundFloat(g_fRadii[1]))
   {
     iWinningTeam = TFTeam_Blue;
   }
@@ -661,6 +690,28 @@ MRESReturn SendHudNotification_Pre(Handle hParams)
 }
 
 //------------------------------------------------------------------------------
+// Set a zone's radius, updating the model scale and PD hud to match.
+void SetZoneRadius(int iTeam, float fRadius)
+{
+  int iRadius = RoundFloat(fRadius);
+  int iDelta = iRadius - RoundFloat(g_fRadii[iTeam]);
+
+  g_fRadii[iTeam] = fRadius;
+
+  SetEntPropFloat(g_iZoneProps[iTeam], Prop_Send, "m_flModelScale", fRadius * 2);
+
+  if (iDelta)
+  {
+    SetEntProp(g_iPDLogic, Prop_Send, iTeam ? "m_nBlueScore" : "m_nRedScore", iRadius);
+
+    if (iDelta > 0)
+    {
+      SendRDPointsChange(iTeam + 2);
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
 /* Create a prop_dynamic for a zone. We have to do some weird stuff here...
  *
  * There is a bug which causes scaled props to be drawn at n^2 scale, while the
@@ -694,10 +745,10 @@ int CreateZoneProp(int iSkin)
 
 //------------------------------------------------------------------------------
 // Send message to all clients to play the score change animation on the PD hud.
-void SendRDPointsChange(int iTeam, bool bPositive)
+void SendRDPointsChange(int iTeam)
 {
   Handle hMessage = StartMessageAll("RDTeamPointsChanged", USERMSG_RELIABLE);
-  BfWriteShort(hMessage, bPositive);
+  BfWriteShort(hMessage, 0);
   BfWriteByte(hMessage, iTeam);
   BfWriteByte(hMessage, 0);
   EndMessage();
