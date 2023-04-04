@@ -308,22 +308,25 @@ public void OnGameFrame()
 
     /* Shrink zones constantly. Speed increases exponentially with radius,
      * and has a multiplier while the zone's team is carrying the ball. */
-    for (int i = 0; i < 2; i++)
+    if (GameRules_GetRoundState() == RoundState_RoundRunning)
     {
-      bool bIsCarrierTeam = g_iCarrier && i == g_iCarrierTeam;
-
-      if (g_fRadii[i] != 0 && !(bIsCarrierTeam && g_fRadii[i] == fDistance))
+      for (int i = 0; i < 2; i++)
       {
-        float fSpeed = SHRINK_SPEED * Exponential(g_fRadii[i] / SHRINK_EXP);
-        if (bIsCarrierTeam)
+        bool bIsCarrierTeam = g_iCarrier && i == g_iCarrierTeam;
+
+        if (g_fRadii[i] != 0 && !(bIsCarrierTeam && g_fRadii[i] == fDistance))
         {
-          fSpeed *= SHRINK_MULT;
+          float fSpeed = SHRINK_SPEED * Exponential(g_fRadii[i] / SHRINK_EXP);
+          if (bIsCarrierTeam)
+          {
+            fSpeed *= SHRINK_MULT;
+          }
+
+          float fRadius = g_fRadii[i] - fSpeed * g_fTickInterval;
+          float fMin = bIsCarrierTeam ? fDistance : 0.0;
+
+          SetZoneRadius(i, (fRadius > fMin) ? fRadius : fMin);
         }
-
-        float fRadius = g_fRadii[i] - fSpeed * g_fTickInterval;
-        float fMin = bIsCarrierTeam ? fDistance : 0.0;
-
-        SetZoneRadius(i, (fRadius > fMin) ? fRadius : fMin);
       }
     }
   }
