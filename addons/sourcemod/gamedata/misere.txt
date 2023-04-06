@@ -226,9 +226,8 @@
 			"CPasstimeGun::BValidPassTarget"
 			{
 				"signature" "CPasstimeGun::BValidPassTarget"
-				"callconv" "thiscall"
+				"callconv" "cdecl"
 				"return" "bool"
-				"this" "ignore"
 				"arguments"
 				{
 					"pSource"
