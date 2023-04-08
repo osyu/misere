@@ -72,17 +72,29 @@
 				"linux" "@_ZN12CTFGameRules19SendHudNotificationER16IRecipientFilter17HudNotification_tb"
 				"windows" "\x55\x8B\xEC\x80\x7D\x2A\x00\x75\x2A\x80\xB9\x2A\x2A\x2A\x2A\x00"
 			}
-			"CTeamplayRoundBasedRules::State_Transition"
+			"CTFPlayer::HandleCommand_JoinClass"
 			{
 				"library" "server"
-				"linux" "@_ZN24CTeamplayRoundBasedRules16State_TransitionE22gamerules_roundstate_t"
-				"windows" "\x55\x8B\xEC\x56\x8B\xF1\x8B\x8E\x2A\x2A\x2A\x2A\x8B\x86\x2A\x2A\x2A\x2A"
+				"linux" "@_ZN9CTFPlayer23HandleCommand_JoinClassEPKcb"
+				"windows" "\x55\x8B\xEC\x83\xEC\x20\x53\x8B\xD9\x8B\x0D\x2A\x2A\x2A\x2A\x56\x33\xF6\x89\x75\x2A\x89\x75\x2A\x8B\x41\x2A\x89\x75\x2A\x89\x75\x2A\x85\xC0"
+			}
+			"CTFPlayer::ForceRegenerateAndRespawn"
+			{
+				"library" "server"
+				"linux" "@_ZN9CTFPlayer25ForceRegenerateAndRespawnEv"
+				"windows" "\x57\x8B\xF9\x8B\x07\x8B\x80\x2A\x2A\x2A\x2A\xFF\xD0\x84\xC0\x0F\x84\x2A\x2A\x2A\x2A\x8B\x07"
 			}
 			"CTFPlayer::CancelEurekaTeleport"
 			{
 				"library" "server"
 				"linux" "@_ZN9CTFPlayer20CancelEurekaTeleportEv"
 				"windows" "\xC6\x81\x2A\x2A\x2A\x2A\x00\xC7\x81\x2A\x2A\x2A\x2A\x00\x00\x80\xBF"
+			}
+			"CTeamplayRoundBasedRules::State_Transition"
+			{
+				"library" "server"
+				"linux" "@_ZN24CTeamplayRoundBasedRules16State_TransitionE22gamerules_roundstate_t"
+				"windows" "\x55\x8B\xEC\x56\x8B\xF1\x8B\x8E\x2A\x2A\x2A\x2A\x8B\x86\x2A\x2A\x2A\x2A"
 			}
 			"CBaseServer::AddTag"
 			{
@@ -301,6 +313,31 @@
 						"type" "bool"
 					}
 				}
+			}
+			"CTFPlayer::HandleCommand_JoinClass"
+			{
+				"signature" "CTFPlayer::HandleCommand_JoinClass"
+				"callconv" "thiscall"
+				"return" "void"
+				"this" "entity"
+				"arguments"
+				{
+					"pClassName"
+					{
+						"type" "charptr"
+					}
+					"bAllowSpawn"
+					{
+						"type" "bool"
+					}
+				}
+			}
+			"CTFPlayer::ForceRegenerateAndRespawn"
+			{
+				"signature" "CTFPlayer::ForceRegenerateAndRespawn"
+				"callconv" "thiscall"
+				"return" "void"
+				"this" "entity"
 			}
 		}
 	}

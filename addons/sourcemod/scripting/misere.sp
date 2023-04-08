@@ -53,9 +53,11 @@ Handle g_hValidPassTarget;
 Handle g_hRadiusDamage;
 Handle g_hApplyOnDamageAliveModifyRules;
 Handle g_hSendHudNotification;
+Handle g_hHandleCommandJoinClass;
+Handle g_hForceRegenerateAndRespawn;
 // SDK calls
-Handle g_hStateTransition;
 Handle g_hCancelEurekaTeleport;
+Handle g_hStateTransition;
 Handle g_hAddTag;
 Handle g_hRemoveTag;
 // Addresses
@@ -111,15 +113,17 @@ public void OnPluginStart()
   g_hRadiusDamage = DHookCreateFromConf(hGameConf, "CTFGameRules::RadiusDamage");
   g_hApplyOnDamageAliveModifyRules = DHookCreateFromConf(hGameConf, "CTFGameRules::ApplyOnDamageAliveModifyRules");
   g_hSendHudNotification = DHookCreateFromConf(hGameConf, "CTFGameRules::SendHudNotification");
+  g_hHandleCommandJoinClass = DHookCreateFromConf(hGameConf, "CTFPlayer::HandleCommand_JoinClass");
+  g_hForceRegenerateAndRespawn = DHookCreateFromConf(hGameConf, "CTFPlayer::ForceRegenerateAndRespawn");
+
+  StartPrepSDKCall(SDKCall_Player);
+  PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "CTFPlayer::CancelEurekaTeleport");
+  g_hCancelEurekaTeleport = EndPrepSDKCall();
 
   StartPrepSDKCall(SDKCall_GameRules);
   PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "CTeamplayRoundBasedRules::State_Transition");
   PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
   g_hStateTransition = EndPrepSDKCall();
-
-  StartPrepSDKCall(SDKCall_Player);
-  PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "CTFPlayer::CancelEurekaTeleport");
-  g_hCancelEurekaTeleport = EndPrepSDKCall();
 
   StartPrepSDKCall(SDKCall_Server);
   PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "CBaseServer::AddTag");
@@ -187,6 +191,8 @@ public void OnMapStart()
     DHookEnableDetour(g_hRadiusDamage, false, RadiusDamage_Pre);
     DHookEnableDetour(g_hApplyOnDamageAliveModifyRules, false, ApplyOnDamageAliveModifyRules_Pre);
     DHookEnableDetour(g_hSendHudNotification, false, SendHudNotification_Pre);
+    DHookEnableDetour(g_hHandleCommandJoinClass, false, HandleCommandJoinClass_Pre);
+    DHookEnableDetour(g_hForceRegenerateAndRespawn, false, ForceRegenerateAndRespawn_Pre);
 
     for (int i = 1; i <= MaxClients; i++)
     {
@@ -205,7 +211,6 @@ public void OnMapStart()
     AddCommandListener(Command_Taunt, "taunt");
     AddCommandListener(Command_Suicide, "kill");
     AddCommandListener(Command_Suicide, "explode");
-    AddCommandListener(Command_Suicide, "joinclass");
 
     g_bPrevFriendlyFire = GetConVarBool(g_hFriendlyFire);
     SetConVarBool(g_hFriendlyFire, true);
@@ -257,6 +262,8 @@ public void OnMapEnd()
     DHookDisableDetour(g_hRadiusDamage, false, RadiusDamage_Pre);
     DHookDisableDetour(g_hApplyOnDamageAliveModifyRules, false, ApplyOnDamageAliveModifyRules_Pre);
     DHookDisableDetour(g_hSendHudNotification, false, SendHudNotification_Pre);
+    DHookDisableDetour(g_hHandleCommandJoinClass, false, HandleCommandJoinClass_Pre);
+    DHookDisableDetour(g_hForceRegenerateAndRespawn, false, ForceRegenerateAndRespawn_Pre);
 
     UnhookEvent("teamplay_round_start", Event_TeamplayRoundStart);
     UnhookEvent("teamplay_round_win", Event_PassFree);
@@ -265,7 +272,6 @@ public void OnMapEnd()
     RemoveCommandListener(Command_Taunt, "taunt");
     RemoveCommandListener(Command_Suicide, "kill");
     RemoveCommandListener(Command_Suicide, "explode");
-    RemoveCommandListener(Command_Suicide, "joinclass");
 
     UnhookConVarChange(g_hFriendlyFire, OnConVarChanged);
     UnhookConVarChange(g_hMaxScores, OnConVarChanged);
@@ -412,39 +418,13 @@ Action Command_Taunt(int iClient, const char[] sCommand, int iArgc)
 }
 
 //------------------------------------------------------------------------------
-/* Prevent players from suiciding or changing class if they are the carrier or
- * near the ball, and show them a suitable hud notification. */
+/* Prevent players from suiciding if they are near the ball, and show them a
+ * hud notification. */
 Action Command_Suicide(int iClient, const char[] sCommand, int iArgc)
 {
-  bool bPrevent;
-
-  if (iClient == g_iCarrier)
+  if (IsClientNearBall(iClient))
   {
-    bPrevent = true;
-  }
-  else if (IsPlayerAlive(iClient))
-  {
-    int iTarget = GetEntityMoveType(g_iBall) ? g_iBall : g_iCarrier;
-
-    if (iTarget)
-    {
-      float vecClient[3];
-      float vecTarget[3];
-      GetClientAbsOrigin(iClient, vecClient);
-      GetEntPropVector(iTarget, Prop_Send, "m_vecOrigin", vecTarget);
-
-      float fDistance = GetVectorDistance(vecClient, vecTarget);
-
-      if (fDistance < NEAR_DIST)
-      {
-        bPrevent = true;
-      }
-    }
-  }
-
-  if (bPrevent)
-  {
-    ShowTFHudText(iClient, "%t", StrEqual(sCommand, "joinclass") ? "No class" : "No suicide");
+    ShowTFHudText(iClient, "%t", "No suicide");
     return Plugin_Handled;
   }
 
@@ -697,6 +677,36 @@ MRESReturn SendHudNotification_Pre(Handle hParams)
 }
 
 //------------------------------------------------------------------------------
+/* Prevent players from suiciding or respawning via a class change if they are
+ * near the ball, and show them a hud notification. */
+MRESReturn HandleCommandJoinClass_Pre(int iClient, Handle hParams)
+{
+  if (IsClientNearBall(iClient))
+  {
+    ShowTFHudText(iClient, "%t", "No suicide");
+
+    DHookSetParam(hParams, 2, false);
+    return MRES_ChangedHandled;
+  }
+
+  return MRES_Ignored;
+}
+
+//------------------------------------------------------------------------------
+/* Prevent players from respawning by via a loadout change if they are near the
+ * ball, and show them a hud notification. */
+MRESReturn ForceRegenerateAndRespawn_Pre(int iClient)
+{
+  if (IsClientNearBall(iClient))
+  {
+    ShowTFHudText(iClient, "%t", "No suicide");
+    return MRES_Supercede;
+  }
+
+  return MRES_Ignored;
+}
+
+//------------------------------------------------------------------------------
 // Set a zone's radius, updating the model scale and PD hud to match.
 void SetZoneRadius(int iTeam, float fRadius)
 {
@@ -808,6 +818,38 @@ int GetWeaponIndexIfJumper(Address pTakeDamageInfo)
   }
 
   return 0;
+}
+
+//------------------------------------------------------------------------------
+bool IsClientNearBall(int iClient)
+{
+  if (iClient == g_iCarrier)
+  {
+    return true;
+  }
+  else if (IsPlayerAlive(iClient))
+  {
+    // If the ball is MOVETYPE_NONE, a player is carrying it
+    int iTarget = GetEntityMoveType(g_iBall) ? g_iBall : g_iCarrier;
+
+    if (iTarget)
+    {
+      float vecClient[3];
+      GetClientAbsOrigin(iClient, vecClient);
+
+      float vecTarget[3];
+      GetEntPropVector(iTarget, Prop_Send, "m_vecOrigin", vecTarget);
+
+      float fDistance = GetVectorDistance(vecClient, vecTarget);
+
+      if (fDistance < NEAR_DIST)
+      {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 //------------------------------------------------------------------------------
