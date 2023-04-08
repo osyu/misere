@@ -16,13 +16,15 @@
 
 #define PLUGIN_VERSION "0.2.0"
 
-#define ROUND_TIME 300
+#define ROUND_TIME 600
 #define SETUP_TIME 10
 #define MAX_SCORES 3
 
 #define SHRINK_SPEED 2.0
 #define SHRINK_MULT 2.0
-#define SHRINK_EXP 3000.0
+#define SHRINK_EXP 2000.0
+
+#define NEAR_DIST 800.0
 
 #define ROCKETJ_INDEX 237
 #define STICKYJ_INDEX 265
@@ -318,7 +320,7 @@ public void OnGameFrame()
       {
         bool bIsCarrierTeam = g_iCarrier && i == g_iCarrierTeam;
 
-        if (g_fRadii[i] != 0 && !(bIsCarrierTeam && g_fRadii[i] == fDistance))
+        if (g_fRadii[i] != 0.0 && !(bIsCarrierTeam && g_fRadii[i] == fDistance))
         {
           float fSpeed = SHRINK_SPEED * Exponential(g_fRadii[i] / SHRINK_EXP);
           if (bIsCarrierTeam)
@@ -432,9 +434,9 @@ Action Command_Suicide(int iClient, const char[] iCommand, int iArgc)
       GetClientAbsOrigin(iClient, vecClient);
       GetEntPropVector(iTarget, Prop_Send, "m_vecOrigin", vecTarget);
 
-      int iDistance = RoundFloat(GetVectorDistance(vecClient, vecTarget));
+      float fDistance = GetVectorDistance(vecClient, vecTarget);
 
-      if (iDistance < 800)
+      if (fDistance < NEAR_DIST)
       {
         ShowTFHudText(iClient, "%t", bJoinClass ? "No class" : "No suicide");
         return Plugin_Handled;
