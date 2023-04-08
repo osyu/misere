@@ -400,7 +400,7 @@ void OnTagsChanged(Handle hConVar, const char[] sOld, const char[] sNew)
 
 //------------------------------------------------------------------------------
 // Prevent the carrier from starting a taunt, and show them a hud notification.
-Action Command_Taunt(int iClient, const char[] iCommand, int iArgc)
+Action Command_Taunt(int iClient, const char[] sCommand, int iArgc)
 {
   if (iClient == g_iCarrier)
   {
@@ -414,14 +414,13 @@ Action Command_Taunt(int iClient, const char[] iCommand, int iArgc)
 //------------------------------------------------------------------------------
 /* Prevent players from suiciding or changing class if they are the carrier or
  * near the ball, and show them a suitable hud notification. */
-Action Command_Suicide(int iClient, const char[] iCommand, int iArgc)
+Action Command_Suicide(int iClient, const char[] sCommand, int iArgc)
 {
-  bool bJoinClass = StrEqual(iCommand, "joinclass");
+  bool bPrevent;
 
   if (iClient == g_iCarrier)
   {
-    ShowTFHudText(iClient, "%t", bJoinClass ? "No class carry" : "No suicide carry");
-    return Plugin_Handled;
+    bPrevent = true;
   }
   else if (IsPlayerAlive(iClient))
   {
@@ -438,10 +437,15 @@ Action Command_Suicide(int iClient, const char[] iCommand, int iArgc)
 
       if (fDistance < NEAR_DIST)
       {
-        ShowTFHudText(iClient, "%t", bJoinClass ? "No class" : "No suicide");
-        return Plugin_Handled;
+        bPrevent = true;
       }
     }
+  }
+
+  if (bPrevent)
+  {
+    ShowTFHudText(iClient, "%t", StrEqual(sCommand, "joinclass") ? "No class" : "No suicide");
+    return Plugin_Handled;
   }
 
   return Plugin_Continue;
@@ -633,6 +637,7 @@ MRESReturn ValidPassTarget_Pre(Handle hReturn, Handle hParams)
     // We need to set this to 0 so we don't get random hud notifications
     DHookSetParamObjectPtrVar(hParams, 3, 0, ObjectValueType_Int, 0);
   }
+
   DHookSetReturn(hReturn, false);
   return MRES_Supercede;
 }
@@ -700,7 +705,7 @@ void SetZoneRadius(int iTeam, float fRadius)
 
   g_fRadii[iTeam] = fRadius;
 
-  SetEntPropFloat(g_iZoneProps[iTeam], Prop_Send, "m_flModelScale", fRadius * 2);
+  SetEntPropFloat(g_iZoneProps[iTeam], Prop_Send, "m_flModelScale", fRadius * 2.0);
 
   if (iDelta)
   {
