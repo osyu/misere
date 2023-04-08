@@ -189,7 +189,7 @@ public void OnMapStart()
 
     DHookGamerules(g_hSetWinningTeam, false, _, SetWinningTeam_Pre);
     DHookEnableDetour(g_hRadiusDamage, false, RadiusDamage_Pre);
-    DHookEnableDetour(g_hApplyOnDamageAliveModifyRules, false, ApplyOnDamageAliveModifyRules_Pre);
+    DHookEnableDetour(g_hApplyOnDamageAliveModifyRules, true, ApplyOnDamageAliveModifyRules_Post);
     DHookEnableDetour(g_hSendHudNotification, false, SendHudNotification_Pre);
     DHookEnableDetour(g_hHandleCommandJoinClass, false, HandleCommandJoinClass_Pre);
     DHookEnableDetour(g_hForceRegenerateAndRespawn, false, ForceRegenerateAndRespawn_Pre);
@@ -203,8 +203,8 @@ public void OnMapStart()
     }
 
     HookEvent("teamplay_round_start", Event_TeamplayRoundStart);
-    /* We have to do this since OnPassFree isn't called if someone is holding the
-     * ball when the round ends (no overtime). */
+    /* We have to do this since OnPassFree isn't called if a player is carrying
+     * the ball when the round ends (no overtime). */
     HookEvent("teamplay_round_win", Event_PassFree);
     HookEvent("player_spawn", Event_PlayerSpawn);
 
@@ -260,7 +260,7 @@ public void OnMapEnd()
   if (g_bInPassTime)
   {
     DHookDisableDetour(g_hRadiusDamage, false, RadiusDamage_Pre);
-    DHookDisableDetour(g_hApplyOnDamageAliveModifyRules, false, ApplyOnDamageAliveModifyRules_Pre);
+    DHookDisableDetour(g_hApplyOnDamageAliveModifyRules, true, ApplyOnDamageAliveModifyRules_Post);
     DHookDisableDetour(g_hSendHudNotification, false, SendHudNotification_Pre);
     DHookDisableDetour(g_hHandleCommandJoinClass, false, HandleCommandJoinClass_Pre);
     DHookDisableDetour(g_hForceRegenerateAndRespawn, false, ForceRegenerateAndRespawn_Pre);
@@ -596,7 +596,7 @@ MRESReturn CanPlayerPickUpBall_Pre(Handle hReturn, Handle hParams)
 
 //------------------------------------------------------------------------------
 /* Prevent stock cannot-pick-up-ball hud notifications from being sent, since
- * not being able to hold the ball is an advantage. */
+ * not being able to carry the ball is an advantage. */
 MRESReturn CanPlayerPickUpBall_Post(Handle hReturn, Handle hParams)
 {
   if (DHookGetParamAddress(hParams, 2))
@@ -650,7 +650,7 @@ MRESReturn RadiusDamage_Pre(Handle hParams)
  * earlier, whereas the value returned by this function is used for subtracting
  * health from the victim (the game uses this same flow for normal self damage
  * from jumper weapons). */
-MRESReturn ApplyOnDamageAliveModifyRules_Pre(Handle hReturn, Handle hParams)
+MRESReturn ApplyOnDamageAliveModifyRules_Post(Handle hReturn, Handle hParams)
 {
   Address pTakeDamageInfo = DHookGetParamAddress(hParams, 1);
 
