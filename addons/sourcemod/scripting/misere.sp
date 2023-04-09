@@ -449,7 +449,6 @@ void Event_TeamplayRoundStart(Handle hEvent, const char[] sName, bool bDontBroad
    * and as a result the default .res file is for RD and won't work. */
   SetEntPropString(g_iPDLogic, Prop_Send, "m_szResFile", "resource/UI/HudObjectivePlayerDestruction.res");
   SetEntProp(g_iPDLogic, Prop_Send, "m_nMaxPoints", MAX_SCORES);
-  SDKHook(g_iPDLogic, SDKHook_Think, PDLogicThink_Pre);
 
   /* PD "escrow" is counted by the client hud code by iterating over all stolen
    * CCaptureFlags, adding up their point values and attributing them to the
@@ -530,13 +529,6 @@ void Event_PassScore(Handle hEvent, const char[] sName, bool bDontBroadcast)
 {
   g_iGoals[g_iCarrierTeam] += GetEventInt(hEvent, "points");
   SetEntProp(g_iCapFlags[g_iCarrierTeam], Prop_Send, "m_nPointValue", g_iGoals[g_iCarrierTeam]);
-}
-
-//------------------------------------------------------------------------------
-// Prevent the PD logic entity from thinking (it wreaks havoc with game state).
-Action PDLogicThink_Pre(int iEnt)
-{
-  return Plugin_Handled;
 }
 
 //------------------------------------------------------------------------------
