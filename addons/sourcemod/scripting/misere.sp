@@ -49,6 +49,7 @@ Handle g_hPassesFilterImpl;
 Handle g_hIsAllowedToPickUpFlag;
 // Detours
 Handle g_hCanPlayerPickUpBall;
+Handle g_hInputTimeUp;
 Handle g_hValidPassTarget;
 Handle g_hRadiusDamage;
 Handle g_hApplyOnDamageAliveModifyRules;
@@ -109,6 +110,7 @@ public void OnPluginStart()
   g_hPassesFilterImpl = DHookCreateFromConf(hGameConf, "CFilterTFTeam::PassesFilterImpl");
   g_hIsAllowedToPickUpFlag = DHookCreateFromConf(hGameConf, "CTFPlayer::IsAllowedToPickUpFlag");
   g_hCanPlayerPickUpBall = DHookCreateFromConf(hGameConf, "CTFPasstimeLogic::BCanPlayerPickUpBall");
+  g_hInputTimeUp = DHookCreateFromConf(hGameConf, "CTFPasstimeLogic::InputTimeUp");
   g_hValidPassTarget = DHookCreateFromConf(hGameConf, "CPasstimeGun::BValidPassTarget");
   g_hRadiusDamage = DHookCreateFromConf(hGameConf, "CTFGameRules::RadiusDamage");
   g_hApplyOnDamageAliveModifyRules = DHookCreateFromConf(hGameConf, "CTFGameRules::ApplyOnDamageAliveModifyRules");
@@ -147,6 +149,7 @@ public void OnPluginStart()
 
   DHookEnableDetour(g_hCanPlayerPickUpBall, false, CanPlayerPickUpBall_Pre);
   DHookEnableDetour(g_hCanPlayerPickUpBall, true, CanPlayerPickUpBall_Post);
+  DHookEnableDetour(g_hInputTimeUp, false, InputTimeUp_Pre);
   DHookEnableDetour(g_hValidPassTarget, false, ValidPassTarget_Pre);
 
   HookEvent("pass_get", Event_PassGet);
@@ -203,9 +206,6 @@ public void OnMapStart()
     }
 
     HookEvent("teamplay_round_start", Event_TeamplayRoundStart);
-    /* We have to do this since OnPassFree isn't called if a player is carrying
-     * the ball when the round ends (no overtime). */
-    HookEvent("teamplay_round_win", Event_PassFree);
     HookEvent("player_spawn", Event_PlayerSpawn);
 
     AddCommandListener(Command_Taunt, "taunt");
@@ -266,7 +266,6 @@ public void OnMapEnd()
     DHookDisableDetour(g_hForceRegenerateAndRespawn, false, ForceRegenerateAndRespawn_Pre);
 
     UnhookEvent("teamplay_round_start", Event_TeamplayRoundStart);
-    UnhookEvent("teamplay_round_win", Event_PassFree);
     UnhookEvent("player_spawn", Event_PlayerSpawn);
 
     RemoveCommandListener(Command_Taunt, "taunt");
@@ -585,6 +584,7 @@ MRESReturn IsAllowedToPickUpFlag_Pre(int iClient, Handle hReturn)
 MRESReturn CanPlayerPickUpBall_Pre(Handle hReturn, Handle hParams)
 {
   int iClient = DHookGetParam(hParams, 1);
+
   if (TF2_IsPlayerInCondition(iClient, TFCond_Taunting) && !IsClientImmune(iClient))
   {
     TF2_RemoveCondition(iClient, TFCond_Taunting);
@@ -606,6 +606,20 @@ MRESReturn CanPlayerPickUpBall_Post(Handle hReturn, Handle hParams)
   }
 
   return MRES_Ignored;
+}
+
+//------------------------------------------------------------------------------
+// Force overtime to always occur by setting all teams' flag captures to 0.
+MRESReturn InputTimeUp_Pre(Handle hParams)
+{
+  int iEnt = -1;
+
+  while ((iEnt = FindEntityByClassname(iEnt, "tf_team")) != -1)
+  {
+    SetEntProp(iEnt, Prop_Send, "m_nFlagCaptures", 0);
+  }
+
+  return MRES_Handled;
 }
 
 //------------------------------------------------------------------------------

@@ -48,6 +48,12 @@
 				"linux" "@_ZNK16CTFPasstimeLogic20BCanPlayerPickUpBallEP9CTFPlayerP17HudNotification_t"
 				"windows" "\x55\x8B\xEC\x57\x8B\x7D\x2A\x85\xFF\x74\x2A\xC7\x07\x00\x00\x00\x00"
 			}
+			"CTFPasstimeLogic::InputTimeUp"
+			{
+				"library" "server"
+				"linux" "@_ZN16CTFPasstimeLogic11InputTimeUpER11inputdata_t"
+				"windows" "\x56\x57\x6A\x02\x8B\xF9\xE8\x2A\x2A\x2A\x2A\x8B\xC8\xE8\x2A\x2A\x2A\x2A\x6A\x03"
+			}
 			"CPasstimeGun::BValidPassTarget"
 			{
 				"library" "server"
@@ -230,6 +236,20 @@
 						"type" "cbaseentity"
 					}
 					"pReason"
+					{
+						"type" "objectptr"
+					}
+				}
+			}
+			"CTFPasstimeLogic::InputTimeUp"
+			{
+				"signature" "CTFPasstimeLogic::InputTimeUp"
+				"callconv" "thiscall"
+				"return" "void"
+				"this" "ignore"
+				"arguments"
+				{
+					"input"
 					{
 						"type" "objectptr"
 					}
