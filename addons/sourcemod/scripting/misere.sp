@@ -313,6 +313,8 @@ public void OnGameFrame()
       if (fDistance > g_fRadii[g_iCarrierTeam])
       {
         SetZoneRadius(g_iCarrierTeam, fDistance);
+
+        ScreenFlash(g_iCarrier);
         ShowTFHudText(g_iCarrier, "%t", "Leaving zone");
       }
     }
@@ -774,6 +776,21 @@ void SendRDPointsChange(int iTeam)
   BfWriteShort(hMessage, 0);
   BfWriteByte(hMessage, iTeam);
   BfWriteByte(hMessage, 0);
+  EndMessage();
+}
+
+//------------------------------------------------------------------------------
+// Show a brief white screen fade to a client.
+void ScreenFlash(int iClient)
+{
+  Handle hMessage = StartMessageOne("Fade", iClient, USERMSG_RELIABLE);
+  BfWriteShort(hMessage, 50); // duration
+  BfWriteShort(hMessage, 50); // hold time
+  BfWriteShort(hMessage, 1); // flags
+  BfWriteByte(hMessage, 255); // red
+  BfWriteByte(hMessage, 255); // green
+  BfWriteByte(hMessage, 255); // blue
+  BfWriteByte(hMessage, 12); // alpha
   EndMessage();
 }
 

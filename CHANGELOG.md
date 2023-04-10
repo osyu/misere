@@ -8,6 +8,7 @@
   - Shrink speed is doubled when the zone's team is carrying the ball
 - Force overtime to always occur regardless of goals scored
 - Increase round time to 10 minutes
+- Show a screen flash to the carrier when they are leaving the zone
 - Improve joinclass check to allow players to queue a class change while still preventing them from suiciding near the ball
 - Prevent respawning due to loadout changes while players are near the ball
 
