@@ -79,6 +79,7 @@ int g_iPrevMaxScores;
 
 // Hud/visual entities
 int g_iPDLogic;
+int g_iGlow;
 int g_iCapFlags[2];
 int g_iZoneProps[2];
 
@@ -465,6 +466,9 @@ void Event_TeamplayRoundStart(Handle hEvent, const char[] sName, bool bDontBroad
   SetEntPropString(g_iPDLogic, Prop_Send, "m_szResFile", "resource/UI/HudObjectivePlayerDestruction.res");
   SetEntProp(g_iPDLogic, Prop_Send, "m_nMaxPoints", MAX_SCORES);
 
+  g_iGlow = CreateEntityByName("tf_glow");
+  SetEntProp(g_iGlow, Prop_Send, "m_glowColor", 0xffffffff);
+
   /* PD "escrow" is counted by the client hud code by iterating over all stolen
    * CCaptureFlags, adding up their point values and attributing them to the
    * previous owner's team. We create two teamed dummy flags here (which have
@@ -529,14 +533,18 @@ void OnPassCarried(int iClient)
 {
   g_iCarrier = iClient;
   g_iCarrierTeam = GetClientTeam(g_iCarrier) - 2;
+
   SetEntProp(g_iPDLogic, Prop_Send, g_iCarrierTeam ? "m_nBlueTargetPoints" : "m_nRedTargetPoints", MAX_SCORES);
+  SetEntPropEnt(g_iGlow, Prop_Send, "m_hTarget", g_iCarrier);
 }
 
 //------------------------------------------------------------------------------
 void Event_PassFree(Handle hEvent, const char[] sName, bool bDontBroadcast)
 {
   g_iCarrier = 0;
+
   SetEntProp(g_iPDLogic, Prop_Send, g_iCarrierTeam ? "m_nBlueTargetPoints" : "m_nRedTargetPoints", 0);
+  SetEntPropEnt(g_iGlow, Prop_Send, "m_hTarget", -1);
 }
 
 //------------------------------------------------------------------------------
