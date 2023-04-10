@@ -49,6 +49,7 @@ Handle g_hPassesFilterImpl;
 Handle g_hIsAllowedToPickUpFlag;
 // Detours
 Handle g_hCanPlayerPickUpBall;
+Handle g_hCrowdReactionSound;
 Handle g_hInputTimeUp;
 Handle g_hValidPassTarget;
 Handle g_hRadiusDamage;
@@ -110,6 +111,7 @@ public void OnPluginStart()
   g_hPassesFilterImpl = DHookCreateFromConf(hGameConf, "CFilterTFTeam::PassesFilterImpl");
   g_hIsAllowedToPickUpFlag = DHookCreateFromConf(hGameConf, "CTFPlayer::IsAllowedToPickUpFlag");
   g_hCanPlayerPickUpBall = DHookCreateFromConf(hGameConf, "CTFPasstimeLogic::BCanPlayerPickUpBall");
+  g_hCrowdReactionSound = DHookCreateFromConf(hGameConf, "CTFPasstimeLogic::CrowdReactionSound");
   g_hInputTimeUp = DHookCreateFromConf(hGameConf, "CTFPasstimeLogic::InputTimeUp");
   g_hValidPassTarget = DHookCreateFromConf(hGameConf, "CPasstimeGun::BValidPassTarget");
   g_hRadiusDamage = DHookCreateFromConf(hGameConf, "CTFGameRules::RadiusDamage");
@@ -149,6 +151,7 @@ public void OnPluginStart()
 
   DHookEnableDetour(g_hCanPlayerPickUpBall, false, CanPlayerPickUpBall_Pre);
   DHookEnableDetour(g_hCanPlayerPickUpBall, true, CanPlayerPickUpBall_Post);
+  DHookEnableDetour(g_hCrowdReactionSound, false, CrowdReactionSound_Pre);
   DHookEnableDetour(g_hInputTimeUp, false, InputTimeUp_Pre);
   DHookEnableDetour(g_hValidPassTarget, false, ValidPassTarget_Pre);
 
@@ -610,6 +613,13 @@ MRESReturn CanPlayerPickUpBall_Post(Handle hReturn, Handle hParams)
   }
 
   return MRES_Ignored;
+}
+
+//------------------------------------------------------------------------------
+// Suppress crowd reaction sounds when the ball is intercepted or stolen.
+MRESReturn CrowdReactionSound_Pre(Handle hParams)
+{
+  return MRES_Supercede;
 }
 
 //------------------------------------------------------------------------------

@@ -48,6 +48,12 @@
 				"linux" "@_ZNK16CTFPasstimeLogic20BCanPlayerPickUpBallEP9CTFPlayerP17HudNotification_t"
 				"windows" "\x55\x8B\xEC\x57\x8B\x7D\x2A\x85\xFF\x74\x2A\xC7\x07\x00\x00\x00\x00"
 			}
+			"CTFPasstimeLogic::CrowdReactionSound"
+			{
+				"library" "server"
+				"linux" "@_ZN16CTFPasstimeLogic18CrowdReactionSoundEi.part.44"
+				"windows" "\x55\x8B\xEC\xA1\x2A\x2A\x2A\x2A\x57\x8B\xF9\xF3\x0F\x10\x40"
+			}
 			"CTFPasstimeLogic::InputTimeUp"
 			{
 				"library" "server"
@@ -238,6 +244,20 @@
 					"pReason"
 					{
 						"type" "objectptr"
+					}
+				}
+			}
+			"CTFPasstimeLogic::CrowdReactionSound"
+			{
+				"signature" "CTFPasstimeLogic::CrowdReactionSound"
+				"callconv" "thiscall"
+				"return" "void"
+				"this" "ignore"
+				"arguments"
+				{
+					"iTeam"
+					{
+						"type" "int"
 					}
 				}
 			}
