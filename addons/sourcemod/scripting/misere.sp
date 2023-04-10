@@ -750,22 +750,22 @@ void SetZoneRadius(int iTeam, float fRadius)
  * - a visible child (what we actually see in-game). */
 int CreateZoneProp(int iSkin)
 {
-  int iPropParent = CreateEntityByName("prop_dynamic");
-  SetEntityModel(iPropParent, ZONE_MODEL ... ".mdl");
-  SetEntPropFloat(iPropParent, Prop_Send, "m_flModelScale", 0.0);
-  AddEntityEffects(iPropParent, 32); // EF_NODRAW
-  TeleportEntity(iPropParent, g_vecCenter, NULL_VECTOR, NULL_VECTOR);
+  int iParent = CreateEntityByName("prop_dynamic");
+  SetEntityModel(iParent, ZONE_MODEL ... ".mdl");
+  SetEntPropFloat(iParent, Prop_Send, "m_flModelScale", 0.0);
+  AddEntityEffects(iParent, 32); // EF_NODRAW
+  TeleportEntity(iParent, g_vecCenter, NULL_VECTOR, NULL_VECTOR);
 
-  int iPropChild = CreateEntityByName("prop_dynamic");
-  SetEntityModel(iPropChild, ZONE_MODEL ... ".mdl");
-  SetEntProp(iPropChild, Prop_Send, "m_nSkin", iSkin);
-  AddEntityEffects(iPropChild, 1 | 16); // EF_BONEMERGE | EF_NOSHADOW
-  TeleportEntity(iPropChild, g_vecCenter, NULL_VECTOR, NULL_VECTOR);
+  int iChild = CreateEntityByName("prop_dynamic");
+  SetEntityModel(iChild, ZONE_MODEL ... ".mdl");
+  SetEntProp(iChild, Prop_Send, "m_nSkin", iSkin);
+  AddEntityEffects(iChild, 1 | 16); // EF_BONEMERGE | EF_NOSHADOW
+  TeleportEntity(iChild, g_vecCenter, NULL_VECTOR, NULL_VECTOR);
 
   SetVariantString("!activator");
-  AcceptEntityInput(iPropChild, "SetParent", iPropParent);
+  AcceptEntityInput(iChild, "SetParent", iParent);
 
-  return iPropParent;
+  return iParent;
 }
 
 //------------------------------------------------------------------------------
