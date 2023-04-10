@@ -355,6 +355,16 @@ public void OnEntityCreated(int iEnt, const char[] sClassName)
 }
 
 //------------------------------------------------------------------------------
+// Prevent the interception condition from being applied.
+public void TF2_OnConditionAdded(int iClient, TFCond iCondition)
+{
+  if (g_bInPassTime && iCondition == TFCond_PasstimeInterception)
+  {
+    TF2_RemoveCondition(iClient, TFCond_PasstimeInterception);
+  }
+}
+
+//------------------------------------------------------------------------------
 /* Remove the fading uber condition when medigun uber is removed. The game never
  * removes this condition on its own when uber is depleted, and when checking if
  * players can pick up the ball the game also considers it as invulnerability.
@@ -809,7 +819,7 @@ void ShowTFHudText(int iClient, const char[] sFmt, any ...)
 }
 
 //------------------------------------------------------------------------------
-/* Restart the round. Used to clean entities when the plugin starts or ends. */
+// Restart the round. Used to clean entities when the plugin starts or ends.
 void RestartRound()
 {
   RoundState iPrevState = GameRules_GetRoundState();
