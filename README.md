@@ -4,6 +4,8 @@ Custom TF2 gamemode based on PASS Time, where the team who moves the JACK furthe
 
 ## Overview
 
+*The following info is outdated.*
+
 - Each team has a team-colored sphere called the "zone", whose radius represents the furthest distance from the center of the map that any team member has stood while carrying the JACK. There is no way to decrease the zone's size. The team with the smallest zone at the end of the round wins.
 - The goal is to force the enemy team to inadvertently expand their zone. This is done mainly by throwing the JACK at enemies while they are standing outside of the zone, or using knockback (e.g. airblast) to push out an enemy who is currently holding the JACK.
 - Standard PASS Time goals can still be scored, but they only serve to expedite the end of the round; the winner is still the team with the smallest zone. Normal overtime rules also still apply (overtime only occurs if both teams have equal goals).

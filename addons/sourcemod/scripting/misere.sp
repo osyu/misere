@@ -14,7 +14,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define PLUGIN_VERSION "0.2.0"
+#define PLUGIN_VERSION "0.3.0"
 
 #define ROUND_TIME 600
 #define SETUP_TIME 10

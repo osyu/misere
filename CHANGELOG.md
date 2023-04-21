@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 (2023-04-21)
 
 - Add zone shrinking to improve game balance
   - Zones will now shrink constantly instead of staying at their max radius until round end
